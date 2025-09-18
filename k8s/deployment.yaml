@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubernetes-demo-api
+  # This just tags the Deployment object. It’s mostly for humans & searching (kubectl get deployments -l app=kubernetes-demo-api).
+  labels:
+    app: kubernetes-demo-api
+spec:
+  replicas: 2
+  selector:
+  # This tell Deployment that i will manages Pods that have the label app=kubernetes-demo-api.”
+    matchLabels:
+      app: kubernetes-demo-api
+  template:
+    metadata:
+    # This defines the labels that every Pod created by this Deployment will get.
+      labels:
+        app: kubernetes-demo-api
+    spec:
+      containers:
+        - name: kubernetes-demo-api
+          image: uditj66/myrepo_kubernetes
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
